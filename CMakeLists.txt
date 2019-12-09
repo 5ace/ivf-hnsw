@@ -3,9 +3,10 @@ cmake_minimum_required (VERSION 2.8)
 # ivf-hnsw project
 project(ivf-hnsw C CXX)
 
-include_directories("${PROJECT_BINARY_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR})
+MESSAGE( STATUS "this var key = ${CMAKE_SOURCE_DIR}/..")
 
-add_subdirectory(faiss)
+#add_subdirectory(faiss)
 add_subdirectory(hnswlib)
 
 # specify output bin_path and lib_path
@@ -18,9 +19,11 @@ file(GLOB ivf-hnsw_cpu_headers ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB ivf-hnsw_cpu_cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 add_library(ivf-hnsw STATIC ${ivf-hnsw_cpu_headers} ${ivf-hnsw_cpu_cpp})
+LINK_DIRECTORIES(/usr/lib64)
 
-SET( CMAKE_CXX_FLAGS  "-Ofast -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -openmp -march=native -fpic -w -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=0" )
-target_link_libraries(ivf-hnsw faiss hnswlib)
+#SET( CMAKE_CXX_FLAGS  "-Ofast -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -openmp -march=native -fpic -w -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=0" )
+SET( CMAKE_CXX_FLAGS  "-O3 -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -openmp -fpic -w -mpopcnt -fopenmp -msse4 -mavx2 -ftree-vectorize -ftree-vectorizer-verbose=0" )
+target_link_libraries(ivf-hnsw  hnswlib ${CMAKE_SOURCE_DIR}/../faiss/libfaiss.a openblas)
 
 # build tests
 add_subdirectory(tests)

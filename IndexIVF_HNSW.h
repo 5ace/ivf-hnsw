@@ -7,11 +7,13 @@
 #include <unordered_map>
 
 #include <faiss/index_io.h>
-#include <faiss/Heap.h>
-#include <faiss/ProductQuantizer.h>
+//#include <faiss/Heap.h>
+//#include <faiss/ProductQuantizer.h>
+#include <faiss/impl/ProductQuantizer.h>
 #include <faiss/VectorTransform.h>
-#include <faiss/FaissAssert.h>
-#include <faiss/utils.h>
+#include <faiss/impl/FaissAssert.h>
+#include <faiss/utils/utils.h>
+#include <faiss/utils/distances.h>
 
 #include <hnswlib/hnswalg.h>
 #include "utils.h"

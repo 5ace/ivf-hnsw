@@ -9,7 +9,8 @@
 #include <iostream>
 #include <sys/time.h>
 
-#include <faiss/utils.h>
+#include <faiss/utils/utils.h>
+#include <faiss/utils/random.h>
 
 #ifdef _MSC_VER
 #include <intrin.h>

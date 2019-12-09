@@ -13,7 +13,7 @@
 #include <cmath>
 #include <queue>
 
-#include <faiss/Heap.h>
+//#include <faiss/Heap.h>
 
 #ifdef _MSC_VER
 #include <intrin.h>
