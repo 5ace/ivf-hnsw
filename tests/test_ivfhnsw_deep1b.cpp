@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         std::vector<float> batch(batch_size * opt.d);
         std::vector<idx_t> precomputed_idx(batch_size);
 
-        index->quantizer->efSearch = 220;
+        index->quantizer->efSearch = 120;
         for (size_t i = 0; i < nbatches; i++) {
             if (i % 10 == 0) {
                 std::cout << "[" << stopw.getElapsedTimeMicro() / 1000000 << "s] "

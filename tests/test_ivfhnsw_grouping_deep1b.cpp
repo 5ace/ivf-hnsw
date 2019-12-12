@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     //==================
     // Load Groundtruth 
     //==================
-    std::cout << "Loading groundtruth from " << opt.path_gt << std::endl;
+    std::cout << "Loading groundtruth from " << opt.path_gt << ",nq:"<<opt.nq <<",ngt:"<< opt.ngt <<std::endl;
     std::vector<idx_t> massQA(opt.nq * opt.ngt);
     {
         std::ifstream gt_input(opt.path_gt, std::ios::binary);
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     //==============
     // Load Queries 
     //==============
-    std::cout << "Loading queries from " << opt.path_q << std::endl;
+    std::cout << "Loading queries from " << opt.path_q <<",d"<<opt.d<<",nq:"<<opt.nq<< std::endl;
     std::vector<float> massQ(opt.nq * opt.d);
     {
         std::ifstream query_input(opt.path_q, std::ios::binary);
@@ -106,7 +106,8 @@ int main(int argc, char **argv)
         std::vector<float> batch(batch_size * opt.d);
         std::vector<idx_t> precomputed_idx(batch_size);
 
-        index->quantizer->efSearch = 220;
+        //index->quantizer->efSearch = 220;
+        index->quantizer->efSearch = 120;
         for (size_t i = 0; i < nbatches; i++) {
             if (i % 10 == 0) {
                 std::cout << "[" << stopw.getElapsedTimeMicro() / 1000000 << "s] "
@@ -228,34 +229,79 @@ int main(int argc, char **argv)
     //========
     // Search 
     //========
-    size_t correct = 0;
-    float distances[opt.k];
-    long labels[opt.k];
+    std::vector< std::vector<float> > distances(opt.nq);
+    std::vector< std::vector<long> > labels(opt.nq);
 
     StopW stopw = StopW();
     for (size_t i = 0; i < opt.nq; i++) {
-        index->search(opt.k, massQ.data() + i*opt.d, distances, labels);
+        distances[i].resize(opt.k);
+        labels[i].resize(opt.k);
+        //std::cout << "searh i " << i<<"," << i * opt.d << ",opt.k:"<< opt.k <<"\n" << std::flush; 
+        //if(i==663) {
+        //  for(int j = 0; j < opt.d; ++j) {
+        //    std::cout << "663:"<<j<<","<< *(massQ.data() + i * opt.d + j) << std::flush;
+        //  }
+        //  std::cout<<std::endl<<std::flush;
+        //  continue;
+        //}
 
-        std::priority_queue<std::pair<float, idx_t >> gt(answers[i]);
-        std::unordered_set<idx_t> g;
+        index->search(opt.k, massQ.data() + i * opt.d, distances[i].data(), labels[i].data());
+        //index->search(opt.k, massQ.data() + i * opt.d, distances,labels );
 
-        while (gt.size()) {
-            g.insert(gt.top().second);
-            gt.pop();
-        }
 
-        for (size_t j = 0; j < opt.k; j++)
-            if (g.count(labels[j]) != 0) {
-                correct++;
-                break;
-            }
+       // std::priority_queue<std::pair<float, idx_t >> gt(answers[i]);
+       // std::unordered_set<idx_t> g;
+
+       // while (gt.size()) {
+       //     g.insert(gt.top().second);
+       //     gt.pop();
+       // }
+
+       // for (size_t j = 0; j < opt.k; j++)
+       //     if (g.count(labels[j]) != 0) {
+       //         correct++;
+       //         break;
+       //     }
     }
     //===================
     // Represent results 
     //===================
+    size_t hit_1 = 0;
+    size_t hit_10 = 0;
+    size_t hit_100 = 0;
+    size_t sameIn100 = 0;
     const float time_us_per_query = stopw.getElapsedTimeMicro() / opt.nq;
-    std::cout << "Recall@" << opt.k << ": " << 1.0f * correct / opt.nq << std::endl;
-    std::cout << "Time per query: " << time_us_per_query << " us" << std::endl;
+    std::cout << "Time per query: " << time_us_per_query/1000 << " ms" << std::endl;
+    //遍历所有query结果
+    for(int i = 0 ; i < opt.nq; i++) {
+      for(int j = 0 ; j < opt.k; j++) {
+        //std::cout <<"i:"<<i<<",j:"<<j<<",label:"<<labels[i][j]<<",gt:"<< massQA[i * opt.ngt] << std::endl;
+        if(labels[i][j] == massQA[i * opt.ngt]) {
+          if(j < 1) {
+            hit_1 ++;
+          } 
+          if(j < 10) {
+            hit_10 ++;
+          } 
+          if(j < 100) {
+            hit_100 ++;
+          } 
+        } 
+        if(j < 100) {
+          //遍历所有gt
+          for(int k = 0; k < std::min(opt.ngt,(size_t)100); k++) {
+              if(labels[i][j] == massQA[i * opt.ngt + k]) {
+                sameIn100++;
+                break;
+              }
+          }
+        }
+      } 
+    }
+    std::cout << "R@1" << ":" << 1.0f * hit_1 / opt.nq << std::endl;
+    std::cout << "R@10" << ":" << 1.0f * hit_10 / opt.nq << std::endl;
+    std::cout << "R@100" << ":" << 1.0f * hit_100 / opt.nq << std::endl;
+    std::cout << "sameIn100" << ":" << 0.01f * sameIn100 / opt.nq << std::endl;
 
     delete index;
     return 0;

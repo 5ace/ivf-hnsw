@@ -259,6 +259,9 @@ namespace ivfhnsw
                     }
 
                     const float term2 = alpha * (query_centroid_dists[nn_centroid_idx] - centroid_norms[nn_centroid_idx]);
+                    //std::cout << "centroid_idx:"<< centroid_idx<<"norms.size:"<<norms.size()<<".subgroup_size:"<<subgroup_size<<std::endl;
+                    thread_local std::vector<float> norms ;
+                    norms.resize(subgroup_size);
                     norm_pq->decode(norm_code, norms.data(), subgroup_size);
 
                     for (size_t j = 0; j < subgroup_size; j++) {
@@ -287,6 +290,7 @@ namespace ivfhnsw
 
         if (do_opq)
             delete const_cast<float *>(query);
+        faiss::maxheap_reorder(k,distances, labels);
     }
 
     void IndexIVF_HNSW_Grouping::write(const char *path_index)

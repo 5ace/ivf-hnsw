@@ -11,25 +11,25 @@ efConstruction="500"  # Max number of candidate vertices in priority queue to ob
 # Data parameters #
 ###################
 
-nb="1000000000"       # Number of base vectors
+nb="10000000"       # Number of base vectors
 
 nt="10000000"         # Number of learn vectors
-nsubt="65536"         # Number of learn vectors to train (random subset of the learn set)
+nsubt="262144"        # Number of learn vectors to train (random subset of the learn set)
 
-nc="993127"           # Number of centroids for HNSW quantizer
+nc="524288"           # Number of centroids for HNSW quantizer
 nsubc="64"            # Number of subcentroids per group
 
 nq="10000"            # Number of queries
-ngt="1000"            # Number of groundtruth neighbours per query
+ngt="1000"               # Number of groundtruth neighbours per query
 
-d="128"               # Vector dimension
+d="128"                # Vector dimension
 
 #################
 # PQ parameters #
 #################
 
 code_size="16"        # Code size per vector in bytes
-opq="off"             # Turn on/off opq encoding
+opq="on"              # Turn on/off opq encoding
 
 #####################
 # Search parameters #
@@ -46,38 +46,41 @@ opq="off"             # Turn on/off opq encoding
 # (  210,      100000,       210    ) #
 #######################################
 
-k="1"                 # Number of the closest vertices to search
-nprobe="32"           # Number of probes at query time
+k="100"                  # Number of the closest vertices to search
+#查询参数
+nprobe="210"           # Number of probes at query time
 max_codes="10000"     # Max number of codes to visit to do a query
-efSearch="80"         # Max number of candidate vertices in priority queue to observe during seaching
-pruning="on"          # Turn on/off pruning
+efSearch="210"         # Max number of candidate vertices in priority queue to observe during seaching
+pruning="on"           # Turn on/off pruning
 
 #########
 # Paths #
 #########
 
-path_data="${PWD}/data/SIFT1B"
-path_model="${PWD}/models/SIFT1B"
+path_data="mmu0.5b"
+path_model="mmu0.5b/ivf-hnsw-group1kw"
 
-path_base="${path_data}/bigann_base.bvecs"
-path_learn="${path_data}/bigann_learn.bvecs"
-path_gt="${path_data}/gnd/idx_1000M.ivecs"
-path_q="${path_data}/bigann_query.bvecs"
-path_centroids="${path_data}/centroids_sift1b.fvecs"
+path_base="${path_data}/mmu0.5b_base.fvecs"
+path_learn="${path_data}/20191109_0.0997b.fvecs"
+path_gt="${path_data}/mmu0.5b_groudtruth_1kw.ivecs"
+path_q="${path_data}/mmu0.5b_query.99w.fvecs"
+path_centroids="${path_data}/kmeans_524288_distribute_iter160/centroids.fvecs"
 
-path_precomputed_idxs="${path_data}/precomputed_idxs_sift1b.ivecs"
+path_precomputed_idxs="${path_model}/precomputed_idxs_mmu0.5b.ivecs"
 
 path_edges="${path_model}/hnsw_M${M}_ef${efConstruction}.ivecs"
 path_info="${path_model}/hnsw_M${M}_ef${efConstruction}.bin"
 
-path_pq="${path_model}/pq${code_size}_nsubc${nsubc}.pq"
-path_norm_pq="${path_model}/norm_pq${code_size}_nsubc${nsubc}.pq"
-path_index="${path_model}/ivfhnsw_PQ${code_size}_nsubc${nsubc}.index"
+path_pq="${path_model}/pq${code_size}_nsubc${nsubc}.opq"
+path_norm_pq="${path_model}/norm_pq${code_size}_nsubc${nsubc}.opq"
+path_opq_matrix="${path_model}/matrix_pq${code_size}_nsubc${nsubc}.opq"
+
+path_index="${path_model}/ivfhnsw_OPQ${code_size}_nsubc${nsubc}.index"
 
 #######
 # Run #
 #######
-${PWD}/bin/test_ivfhnsw_grouping_sift1b \
+./bin/test_ivfhnsw_grouping_deep1b \
                                 -M ${M} \
                                 -efConstruction ${efConstruction} \
                                 -nb ${nb} \
@@ -104,5 +107,6 @@ ${PWD}/bin/test_ivfhnsw_grouping_sift1b \
                                 -path_info ${path_info} \
                                 -path_pq ${path_pq} \
                                 -path_norm_pq ${path_norm_pq} \
+                                -path_opq_matrix ${path_opq_matrix} \
                                 -path_index ${path_index} \
                                 -pruning ${pruning}
