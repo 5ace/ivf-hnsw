@@ -233,6 +233,7 @@ int main(int argc, char **argv)
     std::vector< std::vector<long> > labels(opt.nq);
 
     StopW stopw = StopW();
+    size_t scan_doc_num = 0;
     for (size_t i = 0; i < opt.nq; i++) {
         distances[i].resize(opt.k);
         labels[i].resize(opt.k);
@@ -245,7 +246,7 @@ int main(int argc, char **argv)
         //  continue;
         //}
 
-        index->search(opt.k, massQ.data() + i * opt.d, distances[i].data(), labels[i].data());
+        scan_doc_num += index->search(opt.k, massQ.data() + i * opt.d, distances[i].data(), labels[i].data());
         //index->search(opt.k, massQ.data() + i * opt.d, distances,labels );
 
 
@@ -271,7 +272,8 @@ int main(int argc, char **argv)
     size_t hit_100 = 0;
     size_t sameIn100 = 0;
     const float time_us_per_query = stopw.getElapsedTimeMicro() / opt.nq;
-    std::cout << "Time per query: " << time_us_per_query/1000 << " ms" << std::endl;
+    std::cout << "Time per query: " << time_us_per_query/1000 << " ms,nprobe:"<<  opt.nprobe
+      <<",maxcode:"<< opt.max_codes<<",do_pruning:"<<opt.do_pruning<<",scan_doc:"<< 1.0f* scan_doc_num / opt.nq<< std::endl;
     //遍历所有query结果
     for(int i = 0 ; i < opt.nq; i++) {
       for(int j = 0 ; j < opt.k; j++) {

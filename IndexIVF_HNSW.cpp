@@ -161,7 +161,7 @@ namespace ivfhnsw {
       * sub-vectors and stored separately for each subvector.
       *
     */
-    void IndexIVF_HNSW::search(size_t k, const float *x, float *distances, long *labels)
+    size_t IndexIVF_HNSW::search(size_t k, const float *x, float *distances, long *labels)
     {
         float query_centroid_dists[nprobe]; // Distances to the coarse centroids.
         idx_t centroid_idxs[nprobe];        // Indices of the nearest coarse centroids
@@ -211,6 +211,9 @@ namespace ivfhnsw {
         }
         if (do_opq)
             delete const_cast<float *>(query);
+
+        faiss::maxheap_reorder(k,distances, labels);
+        return ncode;
     }
 
 

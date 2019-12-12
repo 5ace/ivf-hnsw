@@ -156,7 +156,7 @@ namespace ivfhnsw
       * Since y_R defined by a product quantizer, it is split across
       * sub-vectors and stored separately for each sub-vector.
     */
-    void IndexIVF_HNSW_Grouping::search(size_t k, const float *x, float *distances, long *labels)
+    size_t IndexIVF_HNSW_Grouping::search(size_t k, const float *x, float *distances, long *labels)
     {
         // Distances to subcentroids. Used for pruning.
         std::vector<float> query_subcentroid_dists;
@@ -171,6 +171,8 @@ namespace ivfhnsw
 
         // Find the nearest coarse centroids to the query
         auto coarse = quantizer->searchKnn(query, nprobe);
+        assert(coarse.size() >= nprobe);
+
         for (int_fast32_t i = nprobe - 1; i >= 0; i--) {
             idx_t centroid_idx = coarse.top().second;
             centroid_idxs[i] = centroid_idx;
@@ -291,6 +293,7 @@ namespace ivfhnsw
         if (do_opq)
             delete const_cast<float *>(query);
         faiss::maxheap_reorder(k,distances, labels);
+        return ncode;
     }
 
     void IndexIVF_HNSW_Grouping::write(const char *path_index)
